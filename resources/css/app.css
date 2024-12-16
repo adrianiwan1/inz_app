@@ -5,3 +5,36 @@
 [x-cloak] {
     display: none;
 }
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.action {
+    animation: slideUp 0.3s ease-out;
+}
+
+.card {
+    background-color: #fff !important; /* Tło białe dla całego panelu */
+}
+
+.btn-success {
+    background-color: #28a745; /* Zielony kolor przycisku Play */
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545; /* Czerwony kolor przycisku Stop */
+    color: white;
+}
+
+.fas {
+    margin-right: 5px; /* Dodanie przestrzeni przed ikoną */
+}
