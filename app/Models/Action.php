@@ -9,5 +9,17 @@ class Action extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'start_time', 'end_time', 'elapsed_time'];
+    protected $fillable = [
+        'name', 'user_id',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class); // Powiązanie z użytkownikiem
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(ActionHistory::class); // Powiązanie z historią akcji
+    }
 }
