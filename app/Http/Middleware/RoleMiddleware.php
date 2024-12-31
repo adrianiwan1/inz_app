@@ -20,19 +20,19 @@ class RoleMiddleware
     {
         // Sprawdzenie, czy użytkownik jest zalogowany i, jeśli jest, czy ma odpowiednią rolę
         if (!Auth::check()) {
-            return redirect('/')->with('error', 'You must be logged in to access this page.');
+            abort(403, 'You must be logged in to access this page.');
         }
 
         $user = Auth::user();
 
         // Sprawdzamy, czy użytkownik ma rolę 'admin' (admin ma dostęp do wszystkiego)
         if ($role === 'admin' && !$user->hasRole('admin')) {
-            return redirect('/')->with('error', 'Access denied. Admins only.');
+            abort(403, 'Access denied.');
         }
 
         // Jeśli rola to 'employee', sprawdzamy, czy użytkownik jest pracownikiem
         if ($role === 'employee' && !$user->hasRole('employee')) {
-            return redirect('/')->with('error', 'Access denied. Employees only.');
+            abort(403, 'Access denied.');
         }
 
         return $next($request);

@@ -13,6 +13,11 @@ class ActionHistory extends Model
         'action_id', 'user_id', 'start_time', 'end_time', 'elapsed_time',
     ];
 
+    protected $casts = [
+        'start_time' => 'datetime', // Rzutowanie na Carbon
+        'end_time' => 'datetime',   // Rzutowanie na Carbon
+    ];
+
     public function action()
     {
         return $this->belongsTo(Action::class); // Powiązanie z akcją
@@ -22,4 +27,6 @@ class ActionHistory extends Model
     {
         return $this->belongsTo(User::class); // Powiązanie z użytkownikiem
     }
+
+
 }

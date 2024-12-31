@@ -38,13 +38,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="w-3/4 p-6">
-        <div class="bg-white rounded-lg shadow-md p-4">
-            <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-            <p class="text-gray-600">Wybierz akcję z listy po lewej stronie, aby rozpocząć lub zatrzymać czas.</p>
-        </div>
-    </div>
-</div>
+    @include('livewire.action.partials.main-dashboard')
 
 @script
 <script>

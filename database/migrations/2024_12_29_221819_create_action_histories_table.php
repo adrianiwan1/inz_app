@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('action_id')->constrained('actions')->onDelete('cascade'); // Powiązanie z akcją
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Powiązanie z użytkownikiem
-            $table->timestamp('start_time'); // Czas rozpoczęcia
+            $table->timestamp('start_time')->nullable(); // Czas rozpoczęcia
             $table->timestamp('end_time')->nullable(); // Czas zakończenia
             $table->integer('elapsed_time')->default(0); // Czas trwania w sekundach
             $table->timestamps();
