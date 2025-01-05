@@ -9,7 +9,8 @@
                     Dodaj akcję
                 </button>
             </div>
-            <ul class="divide-y divide-gray-200">
+            <!-- Lista akcji z ograniczeniem maksymalnej wysokości i przewijaniem -->
+            <ul class="divide-y divide-gray-200 max-h-52 overflow-y-auto">
                 @foreach($actions as $action)
                     <li wire:key="action-{{ $action->id }}" class="py-4 flex items-center justify-between {{ $action->id == $currentAction ? 'bg-green-200' : '' }}">
                         <span class="text-gray-700">{{ $action->name }}</span>
@@ -18,7 +19,7 @@
                                 <!-- Jeśli akcja jest w trakcie, wyświetlamy przycisk Stop -->
                                 <span class="text-sm text-gray-500">
                                     Czas:
-                                    <!-- Display dynamic time -->
+                                    <!-- Dynamiczny czas -->
                                     <span id="timer"></span>
                                 </span>
                                 <button wire:click="stopAction({{ $action->id }})" class="text-black bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5">
@@ -39,52 +40,4 @@
 
     <!-- Main Content -->
     @include('livewire.action.partials.main-dashboard')
-
-@script
-<script>
-    let startTime = null;
-    let elapsedTime = 0;
-    let timerInterval = null;
-
-    // Nasłuchiwanie zdarzenia 'startTimer'
-    window.addEventListener('startTimer', () => {
-        console.log('Rozpoczęto licznik.');
-        startTime = Date.now(); // Pobierz bieżący czas w milisekundach
-        elapsedTime = 0; // Resetowanie czasu
-
-        if (timerInterval) {
-            clearInterval(timerInterval); // Czyszczenie poprzedniego interwału
-        }
-
-        // Ustawiamy interwał do aktualizowania czasu
-        timerInterval = setInterval(() => {
-            const now = Date.now();
-            elapsedTime = Math.floor((now - startTime) / 1000); // Oblicz upływ czasu w sekundach
-            document.getElementById('timer').textContent = formatTime(elapsedTime);
-        }, 1000);
-    });
-
-    // Nasłuchiwanie zdarzenia 'stopTimer'
-    window.addEventListener('stopTimer', () => {
-        console.log('Zatrzymano licznik.');
-        if (timerInterval) {
-            clearInterval(timerInterval); // Zatrzymaj interwał
-            timerInterval = null;
-        }
-        document.getElementById('timer').textContent = '00:00:00'; // Zresetuj wyświetlany czas
-    });
-
-    // Funkcja do formatowania czasu na format HH:MM:SS
-    function formatTime(seconds) {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const sec = seconds % 60;
-        return `${pad(hours)}:${pad(minutes)}:${pad(sec)}`;
-    }
-
-    // Funkcja do dodania wiodących zer
-    function pad(num) {
-        return num < 10 ? '0' + num : num;
-    }
-</script>
-@endscript
+</div>

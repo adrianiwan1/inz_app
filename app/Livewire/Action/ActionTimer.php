@@ -18,6 +18,8 @@ class ActionTimer extends Component
 
     public $todayActionHistories = [];
 
+    public $todayTotalElapsedTime = 0;
+
     // Obsługuje dodawanie akcji
     public function addAction()
     {
@@ -77,7 +79,7 @@ class ActionTimer extends Component
             } else {
                 $this->elapsedTime = 0; // Ustaw wartość domyślną w razie braku danych
             }
-            dump('Validation:', $history);
+//            dump('Validation:', $history);
 
             // Zaktualizuj tylko aktualny rekord
             $history->end_time = $this->endTime;
@@ -88,6 +90,8 @@ class ActionTimer extends Component
         // Zresetowanie stanu po zakończeniu
         $this->currentAction = null;
 
+        $this->loadTodayActions();
+
         // Emitowanie zdarzeń na frontendzie
         $this->dispatch('stopTimer', []);
         $this->dispatch('actionStopped', ['actionId' => $actionId]);
@@ -97,6 +101,7 @@ class ActionTimer extends Component
     public function mount()
     {
         $this->actions = Action::where('user_id', auth()->id())->get();
+        $this->loadTodayActions();
     }
 
     public function render()
@@ -111,5 +116,9 @@ class ActionTimer extends Component
         ->whereDate('start_time', Carbon::today()) // Tylko akcje wykonane dzisiaj
         ->whereNotNull('end_time') // Tylko zakończone akcje
         ->get();
+
+        $this->todayTotalElapsedTime = $this->todayActionHistories->sum(function ($history) {
+            return $history->elapsed_time; // elapsed_time to liczba sekund
+        });
     }
 }

@@ -15,8 +15,8 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Employee') }}
+                    <x-nav-link href="{{ route('user-activity') }}" :active="request()->routeIs('user-activity')">
+                        {{ __('Activity history') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -101,9 +101,18 @@
                                 {{ __('Manage Account') }}
                             </div>
 
+                            <!-- Sprawdzenie roli admin -->
+                            @if (Auth::user()->hasRole('admin'))
+                            <x-dropdown-link href="{{ url('/admin') }}">
+                                {{ __('Admin Panel') }}
+                            </x-dropdown-link>
+                            @endif
+
                             <x-dropdown-link href="{{ route('profile.show') }}">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
+
+
 
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                                 <x-dropdown-link href="{{ route('api-tokens.index') }}">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\UserActivityCharts;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\RoleMiddleware;
 
@@ -12,6 +13,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');  // Strona dashboard
     })->name('dashboard');
+
+    Route::get('/user-activity', UserActivityCharts::class)->name('user-activity');
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -19,6 +22,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin-panel', function () {
         return view('adminPanel.index');  // Strona dla admina
     })->name('admin.panel');
+
 
 //    Route::get('/some-other-admin-page', function () {
 //        return view('adminPanel.other');  // Strona dla admina

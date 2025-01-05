@@ -23,3 +23,4 @@ yarn-error.log
 /.zed
 /structure.json
 /structure_exports
+/hs_err_*
