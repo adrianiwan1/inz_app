@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Auth;
 
 class UsersManagementResource extends Resource
 {
@@ -75,7 +76,7 @@ class UsersManagementResource extends Resource
                     ->label('Wynagrodzenie godzinowe (zł)')
                     ->formatStateUsing(fn ($state, $record) => $record->employment_type === 'employment'
                         ? 'Nie dotyczy'
-                        : number_format($state / 100, 2, ',', ' ') . ' zł'),
+                        : number_format($state / 100, 2, ',', ' ')),
                 TextColumn::make('created_at')
                     ->label('Data utworzenia')
                     ->dateTime('Y-m-d'),
@@ -83,6 +84,12 @@ class UsersManagementResource extends Resource
             ->filters([
                 // Możesz dodać filtry
             ]);
+    }
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+        return $user && $user->hasRole('manager');
     }
 
     public static function getPages(): array

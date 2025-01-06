@@ -35,4 +35,9 @@ class ReportsStatsOverviewWidget extends BaseWidget
             ),
         ];
     }
+
+    public static function canView(): bool
+    {
+        return auth()->user()->hasRole('manager');
+    }
 }

@@ -2,13 +2,17 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Filament\Exports\PayrollExporter;
+use Illuminate\Support\Facades\Auth;
 
 class Payroll extends Page implements Tables\Contracts\HasTable
 {
@@ -86,7 +90,7 @@ class Payroll extends Page implements Tables\Contracts\HasTable
                     $hourlyRate = $record->hourly_rate ?? 0;
                     $totalHours = $totalSeconds / 3600;
 
-                    return number_format(($hourlyRate / 100) * $totalHours, 2, ',', ' ') . ' zł';
+                    return number_format(($hourlyRate / 100) * $totalHours, 2, ',', ' ');
                 }),
         ];
     }
@@ -96,5 +100,29 @@ class Payroll extends Page implements Tables\Contracts\HasTable
         if (in_array($property, ['selectedMonth', 'selectedYear'])) {
             $this->dispatch('$refresh'); // Emitujemy event odświeżenia tabeli
         }
+    }
+
+    protected function getTableHeaderActions(): array
+    {
+        return [
+            ExportAction::make('export')
+                ->label('Eksportuj do CSV')
+                ->exporter(PayrollExporter::class) // Użyj niestandardowego eksportera
+                ->fileName(function () {
+                    // Pobieranie aktualnie wybranych wartości
+                    $year = $this->selectedYear;
+                    $month = str_pad($this->selectedMonth, 2, '0', STR_PAD_LEFT); // Dodanie zera dla jednocyfrowych miesięcy
+
+                    // Zwrócenie dynamicznej nazwy pliku
+                    return "payroll_{$year}_{$month}";
+                })
+
+                ->formats([ExportFormat::Csv,ExportFormat::Xlsx]),
+        ];
+    }
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+        return $user && $user->hasRole('manager');
     }
 }
