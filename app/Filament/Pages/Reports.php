@@ -74,19 +74,30 @@ class Reports extends Page implements Tables\Contracts\HasTable
             Filter::make('user')
                 ->label('Nazwa użytkownika')
                 ->form([
-                    \Filament\Forms\Components\TextInput::make('user_name')
+                    \Filament\Forms\Components\Select::make('user_id')
                         ->label('Nazwa użytkownika')
-                        ->placeholder('Wprowadź nazwę użytkownika')
-                        ->required(),
+                        ->options(\App\Models\User::query()
+                            ->pluck('name', 'id')
+                            ->toArray()
+                        )
+                        ->placeholder('Wybierz użytkownika')
+                        ->searchable(), // Umożliwia wyszukiwanie w rozwijanej liście
                 ])
-                ->query(function (Builder $query, $data) {
-                    return $query->whereHas('user', function ($subQuery) use ($data) {
-                        $subQuery->where('name', 'like', '%' . ($data['user_name'] ?? '') . '%');
-                    });
+                ->query(function (Builder $query, array $data) {
+                    // Jeżeli użytkownik nie został wybrany, pokazuj wszystkie rekordy
+                    return $query->when(
+                        isset($data['user_id']) && $data['user_id'],
+                        fn ($q) => $q->where('user_id', $data['user_id'])
+                    );
                 })
                 ->indicateUsing(function (array $data): ?string {
-                    return isset($data['user_name']) ? 'Użytkownik: ' . $data['user_name'] : null;
-                })
+                    if (!isset($data['user_id']) || !$data['user_id']) {
+                        return null;
+                    }
+
+                    $userName = \App\Models\User::find($data['user_id'])->name ?? 'Nieznany użytkownik';
+                    return 'Użytkownik: ' . $userName;
+                }),
         ];
     }
 
