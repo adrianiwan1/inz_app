@@ -21,6 +21,7 @@ class UserActivityCharts extends Component
 
     public $currentPage = 1;
 
+    public $totalElapsedTime = 0;
 
     public function previousPage()
     {
@@ -99,6 +100,7 @@ class UserActivityCharts extends Component
             $this->pieChartData = [];
             $this->barChartData = [];
             $this->activityDetails = [];
+            $this->totalElapsedTime = 0;
             logger('Custom range: brak daty startowej lub końcowej');
             return;
         }
@@ -137,6 +139,9 @@ class UserActivityCharts extends Component
             ];
         });
 
+        // Całkowity czas trwania
+        $this->totalElapsedTime = $actions->sum('elapsed_time');
+
         // Wysyłanie zdarzenia do frontendu
         $this->dispatch('chartsUpdated', [
             'pieChartData' => $this->pieChartData,
@@ -148,7 +153,8 @@ class UserActivityCharts extends Component
 
     public function render()
     {
-        return view('livewire.user-activity-charts')
-            ->layout('layouts.app');
+        return view('livewire.user-activity-charts', [
+            'totalElapsedTime' => $this->totalElapsedTime,
+        ])->layout('layouts.app');
     }
 }

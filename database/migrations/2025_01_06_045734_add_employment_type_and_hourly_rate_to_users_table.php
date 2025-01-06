@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('employment_type', ['umowa_o_prace', 'b2b', 'umowa_zlecenie'])->nullable()->after('email');
+            $table->enum('employment_type', ['employment', 'b2b', 'contract'])->nullable()->after('email');
             $table->integer('hourly_rate')->nullable()->after('employment_type'); // Stawka w groszach
         });
     }

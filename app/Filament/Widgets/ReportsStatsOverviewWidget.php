@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class ReportsStatsOverviewWidget extends BaseWidget
 {
-    protected ?string $heading = 'Podsumowanie Raportów';
+    protected ?string $heading = 'Podsumowanie dnia';
 
     protected function getStats(): array
     {

@@ -33,9 +33,18 @@
         <!-- Wykres kołowy -->
         <div class="w-full md:w-2/5 bg-white rounded-lg shadow-md p-4">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold mb-4">Wykres aktywności</h2>
-                <span class="text-sm text-gray-600">
-                    Dane z: {{ $startDate->format('Y-m-d') }} - {{ $endDate->format('Y-m-d') }}
+                <h2 class="text-lg text-black font-bold">Wykres aktywności</h2>
+                <span class="text-black font-bold">
+                    Zakres dat: {{ $startDate->format('Y-m-d') }} - {{ $endDate->format('Y-m-d') }}
+                </span>
+                <span class="text-black font-bold">
+                    Łączny czas: {{
+                        sprintf('%02dh %02dm %02ds',
+                            intdiv($totalElapsedTime, 3600), // godziny
+                            intdiv($totalElapsedTime % 3600, 60), // minuty
+                            $totalElapsedTime % 60 // sekundy
+                        )
+                    }}
                 </span>
             </div>
             <canvas id="pieChart" style="max-width: 100%; height: auto;"></canvas>
@@ -44,11 +53,20 @@
         <!-- Wykres słupkowy -->
         <div class="w-full md:w-7/12 bg-white rounded-lg shadow-md p-4">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold mb-4">Czas trwania akcji</h2>
-                <span class="text-sm text-gray-600">
-                    Dane z: {{ $startDate->format('Y-m-d') }} - {{ $endDate->format('Y-m-d') }}
+                <h2 class="text-lg text-black font-bold">Czas trwania akcji</h2>
+                <span class="text-black font-bold">
+                    Zakres dat: {{ $startDate->format('Y-m-d') }} - {{ $endDate->format('Y-m-d') }}
                 </span>
-                </div>
+                <span class="text-black font-bold">
+                    Łączny czas: {{
+                        sprintf('%02dh %02dm %02ds',
+                            intdiv($totalElapsedTime, 3600), // godziny
+                            intdiv($totalElapsedTime % 3600, 60), // minuty
+                            $totalElapsedTime % 60 // sekundy
+                        )
+                    }}
+                </span>
+            </div>
             <canvas id="barChart" style="max-width: 100%; height: auto;"></canvas>
         </div>
     </div>
@@ -56,11 +74,20 @@
     <!-- Tabela szczegółowa -->
     <div class="bg-white rounded-lg shadow-md p-4">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold">Szczegóły aktywności</h2>
+            <h2 class="text-xl text-black font-bold">Szczegóły aktywności</h2>
             <span class="text-black font-bold">
             Zakres dat:
             {{ $startDate->format('Y-m-d') }} - {{ $endDate->format('Y-m-d') }}
         </span>
+            <span class="text-black font-bold">
+                    Łączny czas: {{
+                        sprintf('%02dh %02dm %02ds',
+                            intdiv($totalElapsedTime, 3600), // godziny
+                            intdiv($totalElapsedTime % 3600, 60), // minuty
+                            $totalElapsedTime % 60 // sekundy
+                        )
+                    }}
+                </span>
         </div>
         <div class="overflow-x-auto bg-white rounded-lg shadow-md">
             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
