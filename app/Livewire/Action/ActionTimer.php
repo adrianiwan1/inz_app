@@ -20,6 +20,25 @@ class ActionTimer extends Component
 
     public $todayTotalElapsedTime = 0;
 
+    public $currentPage = 1;
+
+    // Przejdź do poprzedniej strony
+    public function previousPage()
+    {
+        if ($this->currentPage > 1) {
+            $this->currentPage--;
+        }
+    }
+
+// Przejdź do następnej strony
+    public function nextPage()
+    {
+        $totalPages = ceil($this->todayActionHistories->count() / 12);
+        if ($this->currentPage < $totalPages) {
+            $this->currentPage++;
+        }
+    }
+
     // Obsługuje dodawanie akcji
     public function addAction()
     {
@@ -40,10 +59,16 @@ class ActionTimer extends Component
     // Rozpoczyna akcję
     public function startAction($actionId)
     {
+        if ($this->currentAction) {
+            // Zakończ bieżącą akcję, jeśli istnieje
+            $this->stopAction($this->currentAction);
+        }
+
         $action = Action::find($actionId);
         $this->currentAction = $actionId;
         $this->startTime = now();
         $this->elapsedTime = 0;
+
 
         // Zapisz rozpoczęcie akcji w history
         ActionHistory::create([
@@ -118,6 +143,7 @@ class ActionTimer extends Component
         ->get();
 
         $this->todayTotalElapsedTime = $this->todayActionHistories->sum(function ($history) {
+
             return $history->elapsed_time; // elapsed_time to liczba sekund
         });
     }

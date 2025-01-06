@@ -1,7 +1,7 @@
-<div class="flex h-screen">
+<div class="flex max-h-screen">
     <!-- Sidebar (Card with list) -->
     <div class="w-1/4 p-4">
-        <div class="bg-white rounded-lg shadow-md p-4">
+        <div class="bg-white rounded-lg shadow-md p-4 max-h-full flex flex-col">
             <h5 class="text-lg font-bold mb-4">Actions List</h5>
             <div>
                 <input wire:model="newAction" type="text" placeholder="Nowa akcja" class="border rounded p-2 w-full mb-4" />
@@ -10,7 +10,7 @@
                 </button>
             </div>
             <!-- Lista akcji z ograniczeniem maksymalnej wysokości i przewijaniem -->
-            <ul class="divide-y divide-gray-200 max-h-52 overflow-y-auto">
+            <ul class="divide-y divide-gray-200 overflow-y-auto max-h-128">
                 @foreach($actions as $action)
                     <li wire:key="action-{{ $action->id }}" class="py-4 flex items-center justify-between {{ $action->id == $currentAction ? 'bg-green-200' : '' }}">
                         <span class="text-gray-700">{{ $action->name }}</span>

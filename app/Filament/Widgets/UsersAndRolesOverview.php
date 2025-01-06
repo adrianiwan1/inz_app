@@ -16,4 +16,9 @@ class UsersAndRolesOverview extends BaseWidget
             Stat::make('Liczba administratorów', User::role('admin')->count()),
         ];
     }
+
+    public static function canView(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
 }
