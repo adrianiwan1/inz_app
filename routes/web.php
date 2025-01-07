@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\B2B;
 use App\Livewire\UserActivityCharts;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\RoleMiddleware;
@@ -28,3 +29,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 //        return view('adminPanel.other');  // Strona dla admina
 //    })->name('admin.other');
 });
+
+Route::get('/b2b', B2B::class)->middleware(['auth:sanctum'])->name('b2b');
