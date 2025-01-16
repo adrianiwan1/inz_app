@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Buyer;
 use App\Models\User;
 use App\Models\ActionHistory;
 use App\Models\Invoice;
@@ -36,10 +37,26 @@ class B2B extends Component
 
         $user = auth()->user();
 
+        // Sprawdzenie, czy użytkownik ma employment_type ustawiony na b2b
+        if (!$user || $user->employment_type !== 'b2b') {
+            abort(403, 'Nie masz dostępu do tej strony.');
+        }
+
         // Automatyczne uzupełnienie pól sprzedawcy
-        $this->sellerName = $user->name;
+        $this->sellerName = $user->seller_name;
         $this->sellerAddress = $user->seller_address ?? 'Adres użytkownika';
         $this->sellerNip = $user->seller_nip ?? 'NIP użytkownika';
+        $this->bankAccountNumber = $user->bank_account_number ?? 'Bank account';
+        $this->taxRate = $user->vat_rate ?? 0;
+
+        // Pobierz dane nabywcy z tabeli buyers
+        $buyer = Buyer::first();
+
+        if ($buyer) {
+            $this->buyerName = $buyer->name;
+            $this->buyerAddress = $buyer->address;
+            $this->buyerNip = $buyer->nip;
+        }
 
         // Oblicz wartość netto na podstawie przepracowanych godzin
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -104,20 +121,6 @@ class B2B extends Component
 
         session()->flash('success', 'Faktura została wygenerowana i zapisana w bazie danych.');
         return redirect()->route('b2b');
-    }
-
-    public function downloadInvoice($invoiceId)
-    {
-        $invoice = Invoice::findOrFail($invoiceId);
-
-        // Generowanie PDF
-        $safeInvoiceNumber = str_replace(['/', '\\'], '-', $invoice->invoice_number);
-
-        $pdf = Pdf::loadView('pdf.invoice', compact('invoice'));
-        return response()->streamDownload(
-            fn() => print($pdf->output()),
-            "Faktura_{$safeInvoiceNumber}.pdf"
-        );
     }
 
     public function render()

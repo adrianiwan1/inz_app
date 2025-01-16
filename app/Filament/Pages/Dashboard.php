@@ -14,4 +14,11 @@ class Dashboard extends \Filament\Pages\Dashboard
 //            UserTableWidget::class, // Widget tabeli użytkowników - wyświetlany jako pierwszy
 //        ];
 //    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\DashboardResource\Widgets\UserTableWidget::class,
+        ];
+    }
 }

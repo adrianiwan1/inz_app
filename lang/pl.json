@@ -93,7 +93,7 @@
     "Manage API Tokens": "Zarządzaj Tokenami API",
     "Manage Role": "Zarządzaj Rolami",
     "Manage Team": "Zarządzaj Zespołem",
-    "Name": "Imię i nazwisko",
+    "Name": "Nazwa",
     "New Password": "Nowe Hasło",
     "Not Found": "Nie Znaleziono",
     "of": "z",
@@ -201,5 +201,10 @@
     "You may not leave a team that you created.": "Nie możesz opuścić zespołu, który stworzyłeś",
     "Your email address is unverified.": "Twój adres e-mail jest niezweryfikowany.",
     "B2b": "Współpraca b2b",
+    "FirstName": "Imię",
+    "LastName": "Nazwisko",
+    "Manage Service": "Zarządzanie serwisem",
+    "Admin Panel": "Panel admina",
+    "Manager Panel":"Panel menadżera",
     "Activity history": "Historia aktywności"
 }

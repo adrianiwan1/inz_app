@@ -1,39 +1,74 @@
 <?php
 
+
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
-
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Select;
 use App\Models\ActionHistory;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class Reports extends Page implements Tables\Contracts\HasTable
 {
     use Tables\Concerns\InteractsWithTable;
 
+    public $selectedUser = null;
+    public $startDate = null;
+    public $endDate = null;
+
     protected static ?string $navigationLabel = 'Raporty';
     protected static ?string $slug = 'reports';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
     protected static ?string $title = 'Informacje';
+
+    public function mount(): void
+    {
+        $this->startDate = now()->startOfMonth()->toDateString();
+        $this->endDate = now()->endOfMonth()->toDateString();
+        $this->selectedUser = null;
+    }
+
+    protected function getFormSchema(): array
+    {
+        return [
+                    Select::make('selectedUser')
+                        ->label('Wybierz użytkownika')
+                        ->options(User::query()
+                            ->get()
+                            ->mapWithKeys(fn ($user) => [$user->id => $user->name])
+                            ->toArray()
+                        )
+                        ->placeholder('Wszyscy użytkownicy')
+                        ->reactive()
+                        ->afterStateUpdated(fn () => $this->dispatch('filtersUpdated', $this->selectedUser, $this->startDate, $this->endDate)),
+
+                    DatePicker::make('startDate')
+                        ->label('Data początkowa')
+                        ->reactive()
+                        ->afterStateUpdated(fn () => $this->dispatch('filtersUpdated', $this->selectedUser, $this->startDate, $this->endDate)),
+
+                    DatePicker::make('endDate')
+                        ->label('Data końcowa')
+                        ->reactive()
+                        ->afterStateUpdated(fn () => $this->dispatch('filtersUpdated', $this->selectedUser, $this->startDate, $this->endDate)),
+        ];
+    }
 
     protected function getTableQuery(): Builder
     {
-        return ActionHistory::query();
+        return ActionHistory::query()
+            ->when($this->selectedUser, fn ($query) => $query->where('user_id', $this->selectedUser))
+            ->when($this->startDate, fn ($query) => $query->where('start_time', '>=', Carbon::parse($this->startDate)))
+            ->when($this->endDate, fn ($query) => $query->where('end_time', '<=', Carbon::parse($this->endDate)->setTime(23,59,59)));
     }
 
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            \App\Filament\Widgets\ReportsStatsOverviewWidget::class,
-        ];
-    }
     protected function getTableColumns(): array
     {
         return [
@@ -42,7 +77,15 @@ class Reports extends Page implements Tables\Contracts\HasTable
                 ->sortable()
                 ->searchable(),
             TextColumn::make('user.name')
-                ->label('Nazwa użytkownika')
+                ->label('Użytkownik')
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('user.first_name')
+                ->label('Imię')
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('user.last_name')
+                ->label('Nazwisko')
                 ->sortable()
                 ->searchable(),
             TextColumn::make('elapsed_time')
@@ -60,62 +103,17 @@ class Reports extends Page implements Tables\Contracts\HasTable
         ];
     }
 
-    protected function getTableFilters(): array
+    protected function getTablePollingInterval(): ?string
+    {
+        return '1s';
+    }
+
+    protected function getFooterWidgets(): array
     {
         return [
-            Filter::make('date_range')
-                ->form([
-                    DatePicker::make('start_date')->label('Data początkowa'),
-                    DatePicker::make('end_date')->label('Data końcowa'),
-                ])
-                ->query(function (Builder $query, array $data) {
-                    return $query
-                        ->when($data['start_date'], fn ($q) => $q->where('start_time', '>=', $data['start_date']))
-                        ->when($data['end_date'], fn ($q) => $q->where('end_time', '<=', $data['end_date']));
-                }),
-            Filter::make('user')
-                ->label('Nazwa użytkownika')
-                ->form([
-                    \Filament\Forms\Components\Select::make('user_id')
-                        ->label('Nazwa użytkownika')
-                        ->options(\App\Models\User::query()
-                            ->pluck('name', 'id')
-                            ->toArray()
-                        )
-                        ->placeholder('Wybierz użytkownika')
-                        ->searchable(), // Umożliwia wyszukiwanie w rozwijanej liście
-                ])
-                ->query(function (Builder $query, array $data) {
-                    // Jeżeli użytkownik nie został wybrany, pokazuj wszystkie rekordy
-                    return $query->when(
-                        isset($data['user_id']) && $data['user_id'],
-                        fn ($q) => $q->where('user_id', $data['user_id'])
-                    );
-                })
-                ->indicateUsing(function (array $data): ?string {
-                    if (!isset($data['user_id']) || !$data['user_id']) {
-                        return null;
-                    }
-
-                    $userName = \App\Models\User::find($data['user_id'])->name ?? 'Nieznany użytkownik';
-                    return 'Użytkownik: ' . $userName;
-                }),
+            \App\Filament\Resources\ReportsResource\Widgets\ActionsPieChartWidget::class,
+            \App\Filament\Resources\ReportsResource\Widgets\ActionsBarChartWidget::class,
         ];
-    }
-
-    protected function getTableDefaultSortColumn(): ?string
-    {
-        return 'start_time';
-    }
-
-    protected function getTableDefaultSortDirection(): ?string
-    {
-        return 'desc';
-    }
-
-    protected function getTableRecordsPerPageSelectOptions(): array
-    {
-        return [10, 25, 50];
     }
 
     protected static string $view = 'filament.pages.reports';

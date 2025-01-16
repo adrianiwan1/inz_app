@@ -11,6 +11,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+Use App\Filament\Resources\InvoiceResource\Widgets;
+use Illuminate\Support\Facades\Auth;
 
 class InvoiceResource extends Resource
 {
@@ -18,6 +20,13 @@ class InvoiceResource extends Resource
 
     protected static ?string $navigationLabel = 'Faktury';
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+    public static function getWidgets(): array
+    {
+        return [
+            Widgets\BuyerWidget::class,
+        ];
+    }
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -48,6 +57,8 @@ class InvoiceResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('user.name')->label('Użytkownik'),
+                TextColumn::make('user.first_name')->label('Imię'),
+                TextColumn::make('user.last_name')->label('Imię'),
                 TextColumn::make('invoice_number')->label('Numer faktury'),
                 TextColumn::make('gross_value')
                     ->label('Kwota brutto')
@@ -87,5 +98,11 @@ class InvoiceResource extends Resource
             'create' => Pages\CreateInvoice::route('/create'),
             'edit' => Pages\EditInvoice::route('/{record}/edit'),
         ];
+    }
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+        return $user && $user->hasRole('manager');
     }
 }

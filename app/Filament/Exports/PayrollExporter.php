@@ -4,100 +4,109 @@ namespace App\Filament\Exports;
 
 use App\Models\User;
 use Carbon\Carbon;
-use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
+use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Models\Export;
+use Filament\Tables\Contracts\HasTable;
+use Illuminate\Support\Facades\Log;
 
 class PayrollExporter extends Exporter
 {
     protected static ?string $fileName = 'payroll.csv';
 
     /**
-     * Określenie kolumn eksportu.
-     *
-     * @return array
+     * Definiowanie kolumn eksportu.
      */
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('name')->label('Imię i nazwisko'),
-            ExportColumn::make('email')->label('Email'),
-            ExportColumn::make('total_hours')->label('Przepracowane godziny'),
-            ExportColumn::make('total_salary')->label('Wynagrodzenie (zł)'),
+            ExportColumn::make('name')
+                ->label('Imię i nazwisko'),
+
+            ExportColumn::make('email')
+                ->label('Email'),
+
+            ExportColumn::make('total_hours')
+                ->label('Przepracowane godziny')
+                ->state(function (User $record) {
+                    // Wyznacz początek i koniec aktualnie wybranego miesiąca
+                    $startOfMonth = Carbon::now()->startOfMonth();
+                    $endOfMonth = Carbon::now()->endOfMonth();
+
+                    // Oblicz łączną liczbę przepracowanych sekund w danym miesiącu
+                    $totalSeconds = $record->actionHistories()
+                        ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
+                        ->sum('elapsed_time');
+
+                    // Przelicz sekundy na godziny, minuty i sekundy
+                    $hours = intdiv($totalSeconds, 3600);
+                    $minutes = intdiv($totalSeconds % 3600, 60);
+                    $seconds = $totalSeconds % 60;
+
+                    // Zwróć w formacie `XXh YYm ZZs`
+                    return sprintf('%02dh %02dm %02ds', $hours, $minutes, $seconds);
+                }),
+
+            ExportColumn::make('total_salary')
+                ->label('Wynagrodzenie (zł)')
+                ->state(function (User $record) {
+                    // Wyznacz początek i koniec aktualnie wybranego miesiąca
+                    $startOfMonth = Carbon::now()->startOfMonth();
+                    $endOfMonth = Carbon::now()->endOfMonth();
+
+                    // Oblicz łączną liczbę przepracowanych sekund w danym miesiącu
+                    $totalSeconds = $record->actionHistories()
+                        ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
+                        ->sum('elapsed_time');
+
+                    // Oblicz całkowitą liczbę godzin
+                    $totalHours = $totalSeconds / 3600;
+
+                    // Pobierz stawkę godzinową użytkownika
+                    $hourlyRate = $record->hourly_rate ?? 0;
+
+                    // Oblicz wynagrodzenie na podstawie przepracowanych godzin
+                    $totalSalary = ($hourlyRate / 100) * $totalHours;
+
+                    // Zwróć wynik w formacie `XX,YY zł`
+                    return number_format($totalSalary, 2, ',', ' ') . ' zł';
+                }),
         ];
     }
 
+
     /**
-     * Eksportowanie danych na podstawie parametrów.
-     *
-     * @param array $parameters
-     * @return string
+     * Pobieranie danych do eksportu.
      */
-    public function export(array $parameters): string
+    public function getData(HasTable $table): array
     {
-        $selectedYear = $parameters['selectedYear'] ?? now()->year;
-        $selectedMonth = $parameters['selectedMonth'] ?? now()->month;
+        $startOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->startOfMonth();
+        $endOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->endOfMonth();
 
-        // Ustaw daty początkową i końcową dla wybranego miesiąca
-        $startOfMonth = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
-        $endOfMonth = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
-
-        // Pobieranie danych użytkowników
-        $users = User::with(['actionHistories' => function ($query) use ($startOfMonth, $endOfMonth) {
+        $users = User::query()->with(['actionHistories' => function ($query) use ($startOfMonth, $endOfMonth) {
             $query->whereBetween('start_time', [$startOfMonth, $endOfMonth]);
         }])->get();
 
-        // Przygotowanie danych do eksportu
-        $rows = $users->map(function ($user) use ($startOfMonth, $endOfMonth) {
-            $totalSeconds = $user->actionHistories
-                ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
-                ->sum('elapsed_time');
+        $data = $users->map(function ($user) {
+            $totalSeconds = $user->actionHistories->sum('elapsed_time');
 
             $hours = intdiv($totalSeconds, 3600);
             $minutes = intdiv($totalSeconds % 3600, 60);
             $seconds = $totalSeconds % 60;
 
-            $totalHoursFormatted = sprintf('%02dh %02dm %02ds', $hours, $minutes, $seconds);
-
-            $hourlyRate = $user->hourly_rate ?? 0;
-            $totalSalary = ($hourlyRate / 100) * ($totalSeconds / 3600);
-
             return [
                 'name' => $user->name,
                 'email' => $user->email,
-                'total_hours' => $totalHoursFormatted,
-                'total_salary' => $user->employment_type === 'employment'
-                    ? 'Nie dotyczy'
-                    : number_format($totalSalary, 2, ',', ' '),
+                'total_hours' => sprintf('%02dh %02dm %02ds', $hours, $minutes, $seconds),
+                'total_salary' => $user->hourly_rate ? number_format(($user->hourly_rate / 100) * ($totalSeconds / 3600), 2, ',', ' ') : 'Nie dotyczy',
             ];
-        });
+        })->toArray();
 
-        // Nazwa pliku z dynamicznym miesiącem i rokiem
-        $fileName = 'payroll_' . $selectedYear . '_' . str_pad($selectedMonth, 2, '0', STR_PAD_LEFT) . '.csv';
+        Log::info('Eksportowane dane', $data);
 
-        // Generowanie pliku CSV
-        $filePath = storage_path('app/' . $fileName);
-        $file = fopen($filePath, 'w');
-
-        // Zapis nagłówków
-        fputcsv($file, array_keys($rows->first()));
-
-        // Zapis wierszy
-        foreach ($rows as $row) {
-            fputcsv($file, $row);
-        }
-
-        fclose($file);
-
-        return $filePath;
+        return $data;
     }
 
-    /**
-     * Powiadomienie o zakończonym eksporcie.
-     *
-     * @param Export $export
-     * @return string
-     */
     public static function getCompletedNotificationBody(Export $export): string
     {
         $body = 'Eksport wynagrodzeń został zakończony. Wyeksportowano ' . number_format($export->successful_rows) . ' ' . str('wiersz')->plural($export->successful_rows) . '.';

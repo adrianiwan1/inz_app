@@ -20,6 +20,11 @@
 
                 <x-section-border />
             @endif
+                <div class="mt-10 sm:mt-0">
+                    @livewire('profile-b2-b-settings')
+                </div>
+
+                <x-section-border />
 
             @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
 {{--                <div class="mt-10 sm:mt-0">--}}

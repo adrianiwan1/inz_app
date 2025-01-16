@@ -4,7 +4,7 @@
         <span class="block sm:inline">{{ session('success') }}</span>
     </div>
 @endif
-
+@if(Auth::user()->employment_type === 'b2b')
 <div class="container mx-auto p-4 bg-gray-100">
     <!-- Sekcja tabeli z wystawionymi fakturami -->
     <div class="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -141,3 +141,6 @@
         </form>
     </div>
 </div>
+@else
+    <p>Nie masz dostępu do tej sekcji.</p>
+@endif

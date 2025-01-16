@@ -154,28 +154,62 @@
             let pieChart = null;
             let barChart = null;
 
+            // Funkcja generowania unikalnych kolorów
+            function generateUniqueColors(count) {
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    const hue = (i * 137.5) % 360; // Rozkład kolorów za pomocą złotej liczby
+                    colors.push(hslToHex(hue, 70, 50));
+                }
+                return colors;
+            }
+
+            // Funkcja konwersji HSL do HEX
+            function hslToHex(hue, saturation, lightness) {
+                const c = (1 - Math.abs(2 * lightness / 100 - 1)) * (saturation / 100);
+                const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+                const m = lightness / 100 - c / 2;
+
+                let r = 0, g = 0, b = 0;
+                if (hue < 60) [r, g, b] = [c, x, 0];
+                else if (hue < 120) [r, g, b] = [x, c, 0];
+                else if (hue < 180) [r, g, b] = [0, c, x];
+                else if (hue < 240) [r, g, b] = [0, x, c];
+                else if (hue < 300) [r, g, b] = [x, 0, c];
+                else [r, g, b] = [c, 0, x];
+
+                const toHex = v => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+                return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+            }
+
             // Funkcja do czyszczenia danych wykresu
             function clearChart(chart) {
-                chart.data.labels = []; // Wyczyszczenie etykiet
+                chart.data.labels = [];
                 chart.data.datasets.forEach((dataset) => {
-                    dataset.data = []; // Wyczyszczenie danych w dataset
+                    dataset.data = [];
                 });
                 chart.update();
             }
 
             // Funkcja do aktualizacji danych wykresu
             function updateChart(chart, labels, data) {
-                chart.data.labels = labels; // Ustawienie nowych etykiet
+                const uniqueColors = generateUniqueColors(labels.length);
+                chart.data.labels = labels;
                 chart.data.datasets.forEach((dataset) => {
-                    dataset.data = data; // Ustawienie nowych danych
+                    dataset.data = data;
+                    dataset.backgroundColor = uniqueColors;
                 });
-                chart.update(); // Aktualizacja wykresu
+                chart.update();
             }
 
             // Funkcja inicjalizacji wykresów
             const initCharts = (pieData, barData) => {
                 const pieCtx = document.getElementById('pieChart');
                 const barCtx = document.getElementById('barChart');
+
+                // Generowanie kolorów
+                const pieColors = generateUniqueColors(Object.keys(pieData).length);
+                const barColors = generateUniqueColors(barData.length);
 
                 // Wykres kołowy
                 pieChart = new Chart(pieCtx, {
@@ -184,7 +218,7 @@
                         labels: Object.keys(pieData),
                         datasets: [{
                             data: Object.values(pieData),
-                            backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#33cc33'],
+                            backgroundColor: pieColors,
                         }]
                     }
                 });
@@ -197,7 +231,7 @@
                         datasets: [{
                             label: 'Czas trwania (godziny:minuty)',
                             data: barData.map(item => item.total_time),
-                            backgroundColor: ['#36a2eb', '#ff6384', '#cc65fe', '#ffce56', '#33cc33'],
+                            backgroundColor: barColors,
                         }]
                     },
                     options: {
@@ -214,6 +248,9 @@
                             }
                         },
                         plugins: {
+                            legend: {
+                                display: false
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function (context) {
@@ -235,17 +272,13 @@
             const initialBarData = @json($barChartData ?? []);
             initCharts(initialPieData, initialBarData);
 
-            // // Nasłuchiwanie na zdarzenie `chartsUpdated`
+            // Nasłuchiwanie na zdarzenie `chartsUpdated`
             window.addEventListener('chartsUpdated', function (event) {
-                console.log('Charts Updated Event:', event.detail);
-                console.log('Event Detail Structure:', JSON.stringify(event.detail, null, 2));
                 const detail = Array.isArray(event.detail) ? event.detail[0] : event.detail;
                 const pieChartData = detail.pieChartData || {};
                 const barChartData = detail.barChartData || [];
-                console.log('Updated Pie Data:', pieChartData);
-                console.log('Updated Bar Data:', barChartData);
-            //
-            //     // Wykorzystanie funkcji clearChart i updateChart
+
+                // Czyszczenie i aktualizacja wykresów
                 clearChart(pieChart);
                 clearChart(barChart);
 
@@ -253,6 +286,7 @@
                 updateChart(barChart, barChartData.map(item => item.action), barChartData.map(item => item.total_time));
             });
         });
+
     </script>
 
 @endpush

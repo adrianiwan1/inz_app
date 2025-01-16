@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Resources\DashboardResource\Widgets;
 
 use Filament\Widgets\TableWidget as BaseWidget;
 use Filament\Tables;
@@ -20,10 +20,17 @@ class UserTableWidget extends BaseWidget
     {
         return [
             Tables\Columns\TextColumn::make('name')
-                ->label('Imię i nazwisko')
+                ->label('Nazwa')
                 ->sortable()
                 ->searchable(),
-
+            Tables\Columns\TextColumn::make('first_name')
+                ->label('Imię')
+                ->sortable()
+                ->searchable(),
+            Tables\Columns\TextColumn::make('last_name')
+                ->label('Nazwisko')
+                ->sortable()
+                ->searchable(),
             Tables\Columns\TextColumn::make('email')
                 ->label('E-mail')
                 ->sortable()
@@ -40,6 +47,7 @@ class UserTableWidget extends BaseWidget
     {
         return true; // Włącz paginację
     }
+
 
     public static function canView(): bool
     {

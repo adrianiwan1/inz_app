@@ -31,7 +31,13 @@ class UsersAdministrationResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Imię i nazwisko')
+                    ->label('Nazwa')
+                    ->disabled(), // Pole tylko do odczytu
+                Forms\Components\TextInput::make('first_name')
+                    ->label('Imię')
+                    ->disabled(), // Pole tylko do odczytu
+                Forms\Components\TextInput::make('last_name')
+                    ->label('Nazwisko')
                     ->disabled(), // Pole tylko do odczytu
 
                 Forms\Components\TextInput::make('email')
