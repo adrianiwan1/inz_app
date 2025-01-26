@@ -15,9 +15,14 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Employee') }}
+                    <x-nav-link href="{{ route('user-activity') }}" :active="request()->routeIs('user-activity')">
+                        {{ __('Activity history') }}
                     </x-nav-link>
+                    @if(Auth::user()->employment_type === 'b2b')
+                    <x-nav-link href="{{ route('b2b') }}" :active="request()->routeIs('b2b')">
+                        {{ __('B2b') }}
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -96,14 +101,39 @@
                         </x-slot>
 
                         <x-slot name="content">
+                            <!-- Sprawdzenie roli manager -->
+                            @if (Auth::user()->hasRole('manager'))
+                                <div class="block px-4 py-2 text-xs text-gray-400">
+                                    {{ __('Manage Service') }}
+                                </div>
+                                <x-dropdown-link href="{{ url('/supervisor') }}">
+                                    {{ __('Manager Panel') }}
+                                </x-dropdown-link>
+                                <div class="border-t border-gray-200"></div>
+                            @endif
+                            <!-- Sprawdzenie roli admin -->
+                            @if (Auth::user()->hasRole('admin'))
+                            <div class="block px-4 py-2 text-xs text-gray-400">
+                                {{ __('Manage Service') }}
+                            </div>
+                            <x-dropdown-link href="{{ url('/supervisor') }}">
+                                {{ __('Admin Panel') }}
+                            </x-dropdown-link>
+                            <div class="border-t border-gray-200"></div>
+                            @endif
+
                             <!-- Account Management -->
                             <div class="block px-4 py-2 text-xs text-gray-400">
                                 {{ __('Manage Account') }}
                             </div>
 
+
+
                             <x-dropdown-link href="{{ route('profile.show') }}">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
+
+
 
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                                 <x-dropdown-link href="{{ route('api-tokens.index') }}">

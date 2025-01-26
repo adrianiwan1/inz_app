@@ -14,6 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     use HasApiTokens;
+    use Notifiable;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -29,8 +30,19 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
+        'employment_type',
+        'hourly_rate',
+        'seller_name',
+        'seller_address',
+        'seller_nip',
+        'bank_account_number',
+        'employment_type',
+        'hourly_rate',
+        'vat_rate',
     ];
 
     /**
@@ -53,6 +65,10 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+    /**
+     * @var int|mixed|null
+     */
+    private mixed $hourly_rate;
 
     /**
      * Get the attributes that should be cast.
@@ -65,6 +81,33 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Dodaj accessor
+    public function getHourlyRateInZlotyAttribute(): ?float
+    {
+        return $this->hourly_rate ? $this->hourly_rate / 100 : null;
+    }
+
+    // Dodaj mutator
+    public function setHourlyRateInZlotyAttribute($value): void
+    {
+        $this->hourly_rate = $value ? intval($value * 100) : null;
+    }
+
+    public function actionHistories(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ActionHistory::class);
+    }
+
+    public function setHourlyRateAttribute($value)
+    {
+        $this->attributes['hourly_rate'] = $value * 100;
+    }
+
+    public function getHourlyRateAttribute($value)
+    {
+        return $value / 100;
     }
 
 }
