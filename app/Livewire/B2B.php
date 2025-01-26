@@ -32,6 +32,7 @@ class B2B extends Component
 
     public function mount()
     {
+        // Ustawianie domyślnej daty wystawienia i sprzedaży
         $this->issueDate = Carbon::today()->toDateString();
         $this->saleDate = Carbon::today()->addDays(14)->toDateString();
 
@@ -49,16 +50,15 @@ class B2B extends Component
         $this->bankAccountNumber = $user->bank_account_number ?? 'Bank account';
         $this->taxRate = $user->vat_rate ?? 0;
 
-        // Pobierz dane nabywcy z tabeli buyers
+        // Pobierz dane nabywcy z tabeli buyers (tylko pierwszy rekord)
         $buyer = Buyer::first();
-
         if ($buyer) {
             $this->buyerName = $buyer->name;
             $this->buyerAddress = $buyer->address;
             $this->buyerNip = $buyer->nip;
         }
 
-        // Oblicz wartość netto na podstawie przepracowanych godzin
+        // Oblicz wartość netto na podstawie przepracowanych godzin (dla bieżącego miesiąca)
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
@@ -67,8 +67,39 @@ class B2B extends Component
             ->sum('elapsed_time');
 
         $totalHours = $totalSeconds / 3600;
+        // Przykładowo zakładamy, że stawka godzinowa jest przechowywana w groszach -> dzielimy przez 100
         $this->netValue = round(($user->hourly_rate ?? 0) * $totalHours / 100, 2);
         $this->calculateGrossValue();
+
+        // ----------------- AUTOMATYCZNE UZUPEŁNIANIE NUMERU FAKTURY DLA DANEGO UŻYTKOWNIKA I BIEŻĄCEGO MIESIĄCA -----------------
+        $currentMonth = Carbon::parse($this->issueDate)->format('m');
+        $currentYear = Carbon::parse($this->issueDate)->format('Y');
+
+        // Szukamy ostatniej faktury wystawionej przez tego użytkownika w tym samym miesiącu i roku (po dacie issue_date)
+        $lastInvoice = Invoice::where('user_id', $user->id)
+            ->whereMonth('issue_date', $currentMonth)
+            ->whereYear('issue_date', $currentYear)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$lastInvoice) {
+            // Jeśli nie wystawił jeszcze faktury w tym miesiącu -> numer = 1
+            $nextNumber = 1;
+        } else {
+            // Parsujemy numer faktury w formacie "numer/miesiąc/rok"
+            $parts = explode('/', $lastInvoice->invoice_number);
+
+            if (count($parts) === 3) {
+                // Pierwsza część to poprzedni numer
+                $previousNumber = (int)$parts[0];
+                $nextNumber = $previousNumber + 1;
+            } else {
+                // Fallback jeśli format był niepoprawny
+                $nextNumber = 1;
+            }
+        }
+
+        $this->invoiceNumber = "{$nextNumber}/{$currentMonth}/{$currentYear}";
     }
 
     public function updatedTaxRate()
@@ -119,7 +150,7 @@ class B2B extends Component
             'sale_date' => $this->saleDate,
         ]);
 
-        session()->flash('success', 'Faktura została wygenerowana i zapisana w bazie danych.');
+        session()->flash('success', 'Faktura została wygenerowana i zapisana.');
         return redirect()->route('b2b');
     }
 
@@ -130,7 +161,7 @@ class B2B extends Component
         // Generowanie PDF
         $safeInvoiceNumber = str_replace(['/', '\\'], '-', $invoice->invoice_number);
 
-        $pdf = Pdf::loadView('pdf.invoice', compact('invoice'));
+        $pdf = \Pdf::loadView('pdf.invoice', compact('invoice'));
         return response()->streamDownload(
             fn() => print($pdf->output()),
             "Faktura_{$safeInvoiceNumber}.pdf"
