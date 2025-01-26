@@ -19,6 +19,7 @@ class InvoiceResource extends Resource
     protected static ?string $model = Invoice::class;
 
     protected static ?string $navigationLabel = 'Faktury';
+
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     public static function getWidgets(): array

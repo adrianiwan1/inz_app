@@ -26,7 +26,7 @@ class Reports extends Page implements Tables\Contracts\HasTable
     protected static ?string $navigationLabel = 'Raporty';
     protected static ?string $slug = 'reports';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $title = 'Informacje';
+    protected static ?string $title = 'Raporty';
 
     public function mount(): void
     {

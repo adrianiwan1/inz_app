@@ -29,4 +29,5 @@ class ListInvoices extends ListRecords
     {
         return false; // Wyłącza przycisk "Utwórz"
     }
+    protected static ?string $title = 'Faktury';
 }

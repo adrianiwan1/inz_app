@@ -2,7 +2,7 @@
     <!-- Sidebar (Card with list) -->
     <div class="w-1/4 p-4">
         <div class="bg-white rounded-lg shadow-md p-4 max-h-full flex flex-col">
-            <h5 class="text-lg font-bold mb-4">Actions List</h5>
+            <h5 class="text-lg font-bold mb-4">Lista akcji</h5>
             <div>
                 <input wire:model="newAction" type="text" placeholder="Nowa akcja" class="border rounded p-2 w-full mb-4" />
                 <button wire:click="addAction" class="text-black bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2">

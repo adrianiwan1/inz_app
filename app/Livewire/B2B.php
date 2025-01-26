@@ -123,6 +123,20 @@ class B2B extends Component
         return redirect()->route('b2b');
     }
 
+    public function downloadInvoice($invoiceId)
+    {
+        $invoice = Invoice::findOrFail($invoiceId);
+
+        // Generowanie PDF
+        $safeInvoiceNumber = str_replace(['/', '\\'], '-', $invoice->invoice_number);
+
+        $pdf = Pdf::loadView('pdf.invoice', compact('invoice'));
+        return response()->streamDownload(
+            fn() => print($pdf->output()),
+            "Faktura_{$safeInvoiceNumber}.pdf"
+        );
+    }
+
     public function render()
     {
         $invoices = Invoice::where('user_id', auth()->id())

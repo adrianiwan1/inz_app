@@ -21,7 +21,13 @@ class PayrollExporter extends Exporter
     {
         return [
             ExportColumn::make('name')
-                ->label('Imię i nazwisko'),
+                ->label('Nazwa'),
+
+            ExportColumn::make('first_name')
+                ->label('Imię'),
+
+            ExportColumn::make('last_name')
+                ->label('Nazwisko'),
 
             ExportColumn::make('email')
                 ->label('Email'),
@@ -96,6 +102,8 @@ class PayrollExporter extends Exporter
 
             return [
                 'name' => $user->name,
+                'firt_name' => $user->first_name,
+                'firt_name' => $user->last_name,
                 'email' => $user->email,
                 'total_hours' => sprintf('%02dh %02dm %02ds', $hours, $minutes, $seconds),
                 'total_salary' => $user->hourly_rate ? number_format(($user->hourly_rate / 100) * ($totalSeconds / 3600), 2, ',', ' ') : 'Nie dotyczy',

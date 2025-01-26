@@ -58,7 +58,17 @@ class UsersAdministrationResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Imię i nazwisko')
+                    ->label('Nazwa')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('first_name')
+                    ->label('Imię')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('last_name')
+                    ->label('Nazwisko')
                     ->sortable()
                     ->searchable(),
 

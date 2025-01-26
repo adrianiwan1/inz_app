@@ -156,7 +156,8 @@ class ActionsBarChartWidget extends ChartWidget
     JS);
     }
 
-
+    protected static ?string $pollingInterval = '1s';
+    protected static bool $isLazy = false;
     protected function getType(): string
     {
         return 'bar';

@@ -23,6 +23,8 @@ class Payroll extends Page implements Tables\Contracts\HasTable
 
     protected static ?string $navigationLabel = 'Wynagrodzenia';
     protected static ?string $slug = 'payroll';
+
+    protected static ?string $title = 'Wynagrodzenia';
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
     protected static string $view = 'filament.pages.payroll';
@@ -47,7 +49,15 @@ class Payroll extends Page implements Tables\Contracts\HasTable
     {
         return [
             TextColumn::make('name')
-                ->label('Imię i nazwisko')
+                ->label('Nazwa')
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('first_name')
+                ->label('Imię')
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('last_name')
+                ->label('Nazwisko')
                 ->sortable()
                 ->searchable(),
 
@@ -106,7 +116,7 @@ class Payroll extends Page implements Tables\Contracts\HasTable
     {
         return [
             ExportAction::make('export')
-            ->label('Eksportuj do CSV')
+            ->label('Eksportuj')
             ->exporter(PayrollExporter::class) // Użyj niestandardowego eksportera
             ->fileName(function () {
                 $year = $this->selectedYear;
